@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Car Racing</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 12px;
+            background: #080d18;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #00e5ff;
+            text-shadow: 0 0 15px #00e5ff;
+            margin: 8px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 17px;
+            margin: 15px;
+        }
+
+        #game {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: min(70vh, 620px);
+            min-height: 400px;
+            margin: auto;
+            overflow: hidden;
+            background: #333;
+            border: 3px solid #00e5ff;
+            border-radius: 12px;
+            touch-action: pan-y;
+        }
+
+        #road {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #343a40;
+            overflow: hidden;
+        }
+
+        .grass {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 12%;
+            background: repeating-linear-gradient(0deg, #137a32 0px, #137a32 35px,
+                    #188c3c 35px, #188c3c 70px);
+        }
+
+        .grass.left {
+            left: 0;
+        }
+
+        .grass.right {
+            right: 0;
+        }
+
+        .lane {
+            position: absolute;
+            top: -100%;
+            height: 300%;
+            width: 6px;
+            background: repeating-linear-gradient(to bottom, white 0 45px, transparent 45px 90px);
+            opacity: 0.85;
+        }
+
+        #lane1 {
+            left: 37%;
+        }
+
+        #lane2 {
+            left: 63%;
+        }
+
+        .car {
+            position: absolute;
+            width: 48px;
+            height: 82px;
+            border-radius: 13px 13px 8px 8px;
+            border: 2px solid rgba(255, 255, 255, .8);
+            box-shadow: 0 5px 8px #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+        }
+
+        .car::before {
+            content: "";
+            position: absolute;
+            top: 13px;
+            left: 7px;
+            width: 30px;
+            height: 20px;
+            background: #9be7ff;
+            border: 2px solid #222;
+            border-radius: 6px;
+        }
+
+        .car::after {
+            content: "";
+            position: absolute;
+            bottom: 10px;
+            left: 7px;
+            width: 30px;
+            height: 14px;
+            background: #b6e5ff;
+            border: 2px solid #222;
+            border-radius: 4px;
+        }
+
+        #player {
+            background: #f32646;
+            bottom: 22px;
+            left: calc(50% - 24px);
+            z-index: 5;
+        }
+
+        .enemy {
+            z-index: 3;
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 1px 2px 4px black;
+        }
+
+        #overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            background: rgba(3, 8, 20, .90);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 15px;
+            padding: 22px;
+        }
+
+        #overlay h2 {
+            font-size: 32px;
+            color: #00e5ff;
+            margin: 0;
+        }
+
+        button {
+            padding: 13px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #00e5ff;
+            color: #07101b;
+            font-weight: bold;
+            font-size: 17px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px;
+        }
+
+        .controls button {
+            width: 100px;
+            font-size: 25px;
+        }
+
+        .note {
+            color: #c4cfdf;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🏎️ TURBO RACING</h1>
+
+    <div class="stats">
+        <div>🏆 Score: <span id="score">0</span></div>
+        <div>🚀 Speed: <span id="speed">1</span></div>
+        <div>🔊 <button id="soundBtn" style="padding:7px 10px;font-size:14px">Sound ON</button></div>
+    </div>
+
+    <div id="game">
+        <div id="road">
+            <div class="grass left"></div>
+            <div class="grass right"></div>
+            <div class="lane" id="lane1"></div>
+            <div class="lane" id="lane2"></div>
+
+            <div id="player" class="car">🏎️</div>
+        </div>
+
+        <div id="hud">AVOID THE TRAFFIC!</div>
+
+        <div id="overlay">
+            <h2>🏁 TURBO RACING</h2>
+            <p>Race through traffic and get the highest score!</p>
+            <p>🔊 Engine sound + Crash effects</p>
+            <p>Use arrow keys or touch controls.</p>
+            <button id="startBtn">START RACE ▶</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="leftBtn">⬅️ LEFT</button>
+        <button id="rightBtn">RIGHT ➡️</button>
+    </div>
+
+    <p class="note">
+        PC: ← → Arrow Keys | Mobile: Tap buttons or swipe<br>
+        Collect points by avoiding traffic!
+    </p>
+
+    <script>
+        const game = document.getElementById("game");
+        const road = document.getElementById("road");
+        const player = document.getElementById("player");
+        const overlay = document.getElementById("overlay");
+        const startBtn = document.getElementById("startBtn");
+        const scoreText = document.getElementById("score");
+        const speedText = document.getElementById("speed");
+        const soundBtn = document.getElementById("soundBtn");
+
+        let running = false;
+        let score = 0;
+        let speed = 4;
+        let playerX = 0;
+        let enemies = [];
+        let roadOffset = 0;
+        let spawnTimer = 0;
+        let lastTime = 0;
+        let animationId = 0;
+        let soundEnabled = true;
+
+        let audio = null;
+        let engineOsc = null;
+        let engineGain = null;
+        let crashCooldown = false;
+
+        const colors = ["#ffb703", "#8a5cff", "#06d6a0", "#eeeeee", "#ff6b35"];
+
+        function setupAudio() {
+            if (!audio) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+
+                audio = new AudioContext();
+
+                engineOsc = audio.createOscillator();
+                engineGain = audio.createGain();
+
+                engineOsc.type = "sawtooth";
+                engineOsc.frequency.value = 65;
+                engineGain.gain.value = 0;
+
+                engineOsc.connect(engineGain);
+                engineGain.connect(audio.destination);
+                engineOsc.start();
+            }
+
+            if (audio.state === "suspended") audio.resume();
+        }
+
+        function engineSound() {
+            if (!audio || !engineGain || !engineOsc) return;
+
+            engineGain.gain.setTargetAtTime(
+                running && soundEnabled ? 0.025 : 0,
+                audio.currentTime,
+                0.08
+            );
+
+            engineOsc.frequency.setTargetAtTime(
+                55 + speed * 15,
+                audio.currentTime,
+                0.1
+            );
+        }
+
+        function beep(frequency, duration, type = "sine", volume = 0.12) {
+            if (!soundEnabled || !audio) return;
+
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(frequency, audio.currentTime);
+            gain.gain.setValueAtTime(volume, audio.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+                0.001, audio.currentTime + duration
+            );
+
+            osc.connect(gain);
+            gain.connect(audio.destination);
+
+            osc.start();
+            osc.stop(audio.currentTime + duration);
+        }
+
+        function crashSound() {
+            if (!soundEnabled || !audio) return;
+
+            const bufferSize = audio.sampleRate * 0.3;
+            const buffer = audio.createBuffer(1, bufferSize, audio.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+            }
+
+            const source = audio.createBufferSource();
+            const gain = audio.createGain();
+
+            source.buffer = buffer;
+            gain.gain.value = 0.35;
+
+            source.connect(gain);
+            gain.connect(audio.destination);
+            source.start();
+        }
+
+        function movePlayer(direction) {
+            if (!running) return;
+
+            const maxX = game.clientWidth - player.offsetWidth;
+            playerX = Math.max(
+                game.clientWidth * 0.12,
+                Math.min(game.clientWidth * 0.88 - player.offsetWidth, playerX + direction * 30)
+            );
+
+            playerX = Math.min(maxX, Math.max(0, playerX));
+            player.style.left = playerX + "px";
+        }
+
+        document.addEventListener("keydown", e => {
+            if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                movePlayer(-1);
+            }
+
+            if (e.key === "ArrowRight") {
+                e.preventDefault();
+                movePlayer(1);
+            }
+        });
+
+        document.getElementById("leftBtn").addEventListener("click", () => movePlayer(-1));
+        document.getElementById("rightBtn").addEventListener("click", () => movePlayer(1));
+
+        let touchStartX = 0;
+
+        game.addEventListener("touchstart", e => {
+            touchStartX = e.touches[0].clientX;
+        }, {passive: true});
+
+        game.addEventListener("touchend", e => {
+            if (!running) return;
+
+            const dx = e.changedTouches[0].clientX - touchStartX;
+
+            if (Math.abs(dx) > 20) movePlayer(dx > 0 ? 1 : -1);
+        }, {passive: true});
+
+        soundBtn.addEventListener("click", () => {
+            soundEnabled = !soundEnabled;
+            soundBtn.textContent = soundEnabled ? "Sound ON" : "Sound OFF";
+
+            if (!soundEnabled && engineGain && audio) {
+                engineGain.gain.setTargetAtTime(0, audio.currentTime, 0.05);
+            } else if (soundEnabled) {
+                setupAudio();
+                engineSound();
+            }
+        });
+
+        function spawnEnemy() {
+            const enemy = document.createElement("div");
+            enemy.className = "car enemy";
+
+            enemy.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+            const roadWidth = game.clientWidth;
+            const minX = roadWidth * 0.15;
+            const maxX = roadWidth * 0.85 - 48;
+
+            const x = minX + Math.random() * Math.max(0, maxX - minX);
+
+            enemy.style.left = x + "px";
+            enemy.style.top = "-95px";
+            enemy.textContent = "";
+
+            road.appendChild(enemy);
+
+            enemies.push({
+                element: enemy,
+                x: x,
+                y: -95
+            });
+        }
+
+        function overlaps(a, b) {
+            return a.left < b.right &&
+                a.right > b.left &&
+                a.top < b.bottom &&
+                a.bottom > b.top;
+        }
+
+        function update(delta) {
+            roadOffset = (roadOffset + speed * delta) % 90;
+            document.getElementById("lane1").style.backgroundPositionY = roadOffset + "px";
+            document.getElementById("lane2").style.backgroundPositionY = roadOffset + "px";
+
+            spawnTimer += delta;
+
+            if (spawnTimer > Math.max(35, 85 - score / 10)) {
+                spawnEnemy();
+                spawnTimer = 0;
+            }
+
+            speed = Math.min(12, 4 + score / 180);
+
+            const playerRect = player.getBoundingClientRect();
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+
+                enemy.y += speed * delta;
+                enemy.element.style.top = enemy.y + "px";
+
+                const enemyRect = enemy.element.getBoundingClientRect();
+
+                if (overlaps(playerRect, enemyRect)) {
+                    crashSound();
+                    endGame();
+                    return;
+                }
+
+                if (enemy.y > game.clientHeight) {
+                    enemy.element.remove();
+                    enemies.splice(i, 1);
+                    score += 10;
+
+                    scoreText.textContent = score;
+                    beep(880, 0.08, "sine", 0.04);
+                }
+            }
+
+            speedText.textContent = Math.floor(speed);
+            engineSound();
+        }
+
+        function loop(timestamp) {
+            if (!running) return;
+
+            if (!lastTime) lastTime = timestamp;
+
+            const delta = Math.min((timestamp - lastTime) / 16.67, 2);
+            lastTime = timestamp;
+
+            update(delta);
+
+            if (running) {
+                animationId = requestAnimationFrame(loop);
+            }
+        }
+
+        function startGame() {
+            if (running) return;
+
+            setupAudio();
+
+            enemies.forEach(e => e.element.remove());
+            enemies = [];
+
+            score = 0;
+            speed = 4;
+            spawnTimer = 0;
+            roadOffset = 0;
+            lastTime = 0;
+
+            scoreText.textContent = "0";
+            speedText.textContent = "4";
+
+            playerX = (game.clientWidth - player.offsetWidth) / 2;
+            player.style.left = playerX + "px";
+
+            overlay.style.display = "none";
+            running = true;
+
+            engineSound();
+            animationId = requestAnimationFrame(loop);
+        }
+
+        function endGame() {
+            running = false;
+            engineSound();
+
+            cancelAnimationFrame(animationId);
+
+            overlay.innerHTML = `
+        <h2>💥 CRASHED!</h2>
+        <p>Your Score: ${score}</p>
+        <p>Keep practicing to beat your record!</p>
+        <button id="restartBtn">RACE AGAIN 🔄</button>
+    `;
+
+            overlay.style.display = "flex";
+
+            document.getElementById("restartBtn").addEventListener("click", startGame);
+        }
+
+        startBtn.addEventListener("click", startGame);
+
+        window.addEventListener("resize", () => {
+            if (!running) {
+                playerX = (game.clientWidth - player.offsetWidth) / 2;
+                player.style.left = playerX + "px";
+            }
+        });
+    </script>
+
+</body>
+
+</html>
